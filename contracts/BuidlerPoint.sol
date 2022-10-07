@@ -403,20 +403,20 @@ contract BuidlerPoint is Context, IERC20, IERC20Metadata, AccessControl {
      */
     function addManager(address to) public virtual onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
         address owner = _msgSender();
-        grantRole(roleManager, to);
-        grantRole(roleMinter, to);
-        grantRole(roleTransferor, to);
-        grantRole(roleBurner, to);
+        _grantRole(roleManager, to);
+        _grantRole(roleMinter, to);
+        _grantRole(roleTransferor, to);
+        _grantRole(roleBurner, to);
         emit ManagerAdded(owner, to);
         return true;
     }
 
     function removeManager(address to) public virtual onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
         address owner = _msgSender();
-        revokeRole(roleManager, to);
-        revokeRole(roleMinter, to);
-        revokeRole(roleTransferor, to);
-        revokeRole(roleBurner, to);
+        _revokeRole(roleManager, to);
+        _revokeRole(roleMinter, to);
+        _revokeRole(roleTransferor, to);
+        _revokeRole(roleBurner, to);
         emit ManegerRemoved(owner, to);
         return true;
     }
@@ -429,48 +429,48 @@ contract BuidlerPoint is Context, IERC20, IERC20Metadata, AccessControl {
      */
     function adminAddAdminRole(address to) public virtual onlyRole(roleManager) returns (bool) {
         address owner = _msgSender();
-        grantRole(roleMinter, to);
-        grantRole(roleTransferor, to);
-        grantRole(roleBurner, to);
+        _grantRole(roleMinter, to);
+        _grantRole(roleTransferor, to);
+        _grantRole(roleBurner, to);
         emit AdminAdded(owner, to);
         return true;
     }
 
     function adminRemoveAdminRole(address to) public virtual onlyRole(roleManager) returns (bool) {
         address owner = _msgSender();
-        revokeRole(roleMinter, to);
-        revokeRole(roleTransferor, to);
-        revokeRole(roleBurner, to);
+        _revokeRole(roleMinter, to);
+        _revokeRole(roleTransferor, to);
+        _revokeRole(roleBurner, to);
         emit AdminRemoved(owner, to);
         return true;
     }
 
     function adminAddTransferorRole(address to) public virtual onlyRole(roleManager) returns (bool) {
         address owner = _msgSender();
-        grantRole(roleTransferor, to);
-        grantRole(roleBurner, to);
+        _grantRole(roleTransferor, to);
+        _grantRole(roleBurner, to);
         emit TransferorAddded(owner, to);
         return true;
     }
 
     function adminRemoveTransferorRole(address to) public virtual onlyRole(roleManager) returns (bool) {
         address owner = _msgSender();
-        revokeRole(roleTransferor, to);
-        revokeRole(roleBurner, to);
+        _revokeRole(roleTransferor, to);
+        _revokeRole(roleBurner, to);
         emit TransferorRemoved(owner, to);
         return true;
     }
 
     function adminAddBurnerRole(address to) public virtual onlyRole(roleManager) returns (bool) {
         address owner = _msgSender();
-        grantRole(roleBurner, to);
+        _grantRole(roleBurner, to);
         emit BurnerAddded(owner, to);
         return true;
     }
 
     function adminRemoveBurnerRole(address to) public virtual onlyRole(roleManager) returns (bool) {
         address owner = _msgSender();
-        revokeRole(roleBurner, to);
+        _revokeRole(roleBurner, to);
         emit BurnerRemoved(owner, to);
         return true;
     }

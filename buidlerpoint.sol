@@ -1,30 +1,4 @@
 // SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts v4.4.1 (utils/Context.sol)
-
-pragma solidity ^0.8.0;
-
-/**
- * @dev Provides information about the current execution context, including the
- * sender of the transaction and its data. While these are generally available
- * via msg.sender and msg.data, they should not be accessed in such a direct
- * manner, since when dealing with meta-transactions the account sending and
- * paying for execution may not be the actual sender (as far as an application
- * is concerned).
- *
- * This contract is only required for intermediate, library-like contracts.
- */
-abstract contract Context {
-    function _msgSender() internal view virtual returns (address) {
-        return msg.sender;
-    }
-
-    function _msgData() internal view virtual returns (bytes calldata) {
-        return msg.data;
-    }
-}
-
-
-// File @openzeppelin/contracts/utils/Strings.sol@v4.7.3
 // OpenZeppelin Contracts (last updated v4.7.0) (utils/Strings.sol)
 
 pragma solidity ^0.8.0;
@@ -101,7 +75,97 @@ library Strings {
 }
 
 
+// File @openzeppelin/contracts/utils/Context.sol@v4.7.3
+
+
+// OpenZeppelin Contracts v4.4.1 (utils/Context.sol)
+
+pragma solidity ^0.8.0;
+
+/**
+ * @dev Provides information about the current execution context, including the
+ * sender of the transaction and its data. While these are generally available
+ * via msg.sender and msg.data, they should not be accessed in such a direct
+ * manner, since when dealing with meta-transactions the account sending and
+ * paying for execution may not be the actual sender (as far as an application
+ * is concerned).
+ *
+ * This contract is only required for intermediate, library-like contracts.
+ */
+abstract contract Context {
+    function _msgSender() internal view virtual returns (address) {
+        return msg.sender;
+    }
+
+    function _msgData() internal view virtual returns (bytes calldata) {
+        return msg.data;
+    }
+}
+
+
+// File @openzeppelin/contracts/utils/introspection/IERC165.sol@v4.7.3
+
+
+// OpenZeppelin Contracts v4.4.1 (utils/introspection/IERC165.sol)
+
+pragma solidity ^0.8.0;
+
+/**
+ * @dev Interface of the ERC165 standard, as defined in the
+ * https://eips.ethereum.org/EIPS/eip-165[EIP].
+ *
+ * Implementers can declare support of contract interfaces, which can then be
+ * queried by others ({ERC165Checker}).
+ *
+ * For an implementation, see {ERC165}.
+ */
+interface IERC165 {
+    /**
+     * @dev Returns true if this contract implements the interface defined by
+     * `interfaceId`. See the corresponding
+     * https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[EIP section]
+     * to learn more about how these ids are created.
+     *
+     * This function call must use less than 30 000 gas.
+     */
+    function supportsInterface(bytes4 interfaceId) external view returns (bool);
+}
+
+
+// File @openzeppelin/contracts/utils/introspection/ERC165.sol@v4.7.3
+
+
+// OpenZeppelin Contracts v4.4.1 (utils/introspection/ERC165.sol)
+
+pragma solidity ^0.8.0;
+
+/**
+ * @dev Implementation of the {IERC165} interface.
+ *
+ * Contracts that want to implement ERC165 should inherit from this contract and override {supportsInterface} to check
+ * for the additional interface id that will be supported. For example:
+ *
+ * ```solidity
+ * function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+ *     return interfaceId == type(MyInterface).interfaceId || super.supportsInterface(interfaceId);
+ * }
+ * ```
+ *
+ * Alternatively, {ERC165Storage} provides an easier to use but more expensive implementation.
+ */
+abstract contract ERC165 is IERC165 {
+    /**
+     * @dev See {IERC165-supportsInterface}.
+     */
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return interfaceId == type(IERC165).interfaceId;
+    }
+}
+
+
 // File @openzeppelin/contracts/access/IAccessControl.sol@v4.7.3
+
+
 // OpenZeppelin Contracts v4.4.1 (access/IAccessControl.sol)
 
 pragma solidity ^0.8.0;
@@ -191,63 +255,9 @@ interface IAccessControl {
 }
 
 
-// File @openzeppelin/contracts/utils/introspection/IERC165.sol@v4.7.3
-// OpenZeppelin Contracts v4.4.1 (utils/introspection/IERC165.sol)
-
-pragma solidity ^0.8.0;
-
-/**
- * @dev Interface of the ERC165 standard, as defined in the
- * https://eips.ethereum.org/EIPS/eip-165[EIP].
- *
- * Implementers can declare support of contract interfaces, which can then be
- * queried by others ({ERC165Checker}).
- *
- * For an implementation, see {ERC165}.
- */
-interface IERC165 {
-    /**
-     * @dev Returns true if this contract implements the interface defined by
-     * `interfaceId`. See the corresponding
-     * https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[EIP section]
-     * to learn more about how these ids are created.
-     *
-     * This function call must use less than 30 000 gas.
-     */
-    function supportsInterface(bytes4 interfaceId) external view returns (bool);
-}
-
-
-// File @openzeppelin/contracts/utils/introspection/ERC165.sol@v4.7.3
-// OpenZeppelin Contracts v4.4.1 (utils/introspection/ERC165.sol)
-
-pragma solidity ^0.8.0;
-
-/**
- * @dev Implementation of the {IERC165} interface.
- *
- * Contracts that want to implement ERC165 should inherit from this contract and override {supportsInterface} to check
- * for the additional interface id that will be supported. For example:
- *
- * ```solidity
- * function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
- *     return interfaceId == type(MyInterface).interfaceId || super.supportsInterface(interfaceId);
- * }
- * ```
- *
- * Alternatively, {ERC165Storage} provides an easier to use but more expensive implementation.
- */
-abstract contract ERC165 is IERC165 {
-    /**
-     * @dev See {IERC165-supportsInterface}.
-     */
-    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
-        return interfaceId == type(IERC165).interfaceId;
-    }
-}
-
-
 // File @openzeppelin/contracts/access/AccessControl.sol@v4.7.3
+
+
 // OpenZeppelin Contracts (last updated v4.7.0) (access/AccessControl.sol)
 
 pragma solidity ^0.8.0;
@@ -495,6 +505,8 @@ abstract contract AccessControl is Context, IAccessControl, ERC165 {
 
 
 // File @openzeppelin/contracts/token/ERC20/IERC20.sol@v4.7.3
+
+
 // OpenZeppelin Contracts (last updated v4.6.0) (token/ERC20/IERC20.sol)
 
 pragma solidity ^0.8.0;
@@ -579,6 +591,8 @@ interface IERC20 {
 
 
 // File @openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol@v4.7.3
+
+
 // OpenZeppelin Contracts v4.4.1 (token/ERC20/extensions/IERC20Metadata.sol)
 
 pragma solidity ^0.8.0;
@@ -607,6 +621,8 @@ interface IERC20Metadata is IERC20 {
 
 
 // File contracts/BuidlerPoint.sol
+
+
 // OpenZeppelin Contracts (last updated v4.7.0) (token/ERC20/ERC20.sol)
 
 pragma solidity ^0.8.0;
@@ -1008,20 +1024,20 @@ contract BuidlerPoint is Context, IERC20, IERC20Metadata, AccessControl {
      */
     function addManager(address to) public virtual onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
         address owner = _msgSender();
-        grantRole(roleManager, to);
-        grantRole(roleMinter, to);
-        grantRole(roleTransferor, to);
-        grantRole(roleBurner, to);
+        _grantRole(roleManager, to);
+        _grantRole(roleMinter, to);
+        _grantRole(roleTransferor, to);
+        _grantRole(roleBurner, to);
         emit ManagerAdded(owner, to);
         return true;
     }
 
     function removeManager(address to) public virtual onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
         address owner = _msgSender();
-        revokeRole(roleManager, to);
-        revokeRole(roleMinter, to);
-        revokeRole(roleTransferor, to);
-        revokeRole(roleBurner, to);
+        _revokeRole(roleManager, to);
+        _revokeRole(roleMinter, to);
+        _revokeRole(roleTransferor, to);
+        _revokeRole(roleBurner, to);
         emit ManegerRemoved(owner, to);
         return true;
     }
@@ -1034,48 +1050,48 @@ contract BuidlerPoint is Context, IERC20, IERC20Metadata, AccessControl {
      */
     function adminAddAdminRole(address to) public virtual onlyRole(roleManager) returns (bool) {
         address owner = _msgSender();
-        grantRole(roleMinter, to);
-        grantRole(roleTransferor, to);
-        grantRole(roleBurner, to);
+        _grantRole(roleMinter, to);
+        _grantRole(roleTransferor, to);
+        _grantRole(roleBurner, to);
         emit AdminAdded(owner, to);
         return true;
     }
 
     function adminRemoveAdminRole(address to) public virtual onlyRole(roleManager) returns (bool) {
         address owner = _msgSender();
-        revokeRole(roleMinter, to);
-        revokeRole(roleTransferor, to);
-        revokeRole(roleBurner, to);
+        _revokeRole(roleMinter, to);
+        _revokeRole(roleTransferor, to);
+        _revokeRole(roleBurner, to);
         emit AdminRemoved(owner, to);
         return true;
     }
 
     function adminAddTransferorRole(address to) public virtual onlyRole(roleManager) returns (bool) {
         address owner = _msgSender();
-        grantRole(roleTransferor, to);
-        grantRole(roleBurner, to);
+        _grantRole(roleTransferor, to);
+        _grantRole(roleBurner, to);
         emit TransferorAddded(owner, to);
         return true;
     }
 
     function adminRemoveTransferorRole(address to) public virtual onlyRole(roleManager) returns (bool) {
         address owner = _msgSender();
-        revokeRole(roleTransferor, to);
-        revokeRole(roleBurner, to);
+        _revokeRole(roleTransferor, to);
+        _revokeRole(roleBurner, to);
         emit TransferorRemoved(owner, to);
         return true;
     }
 
     function adminAddBurnerRole(address to) public virtual onlyRole(roleManager) returns (bool) {
         address owner = _msgSender();
-        grantRole(roleBurner, to);
+        _grantRole(roleBurner, to);
         emit BurnerAddded(owner, to);
         return true;
     }
 
     function adminRemoveBurnerRole(address to) public virtual onlyRole(roleManager) returns (bool) {
         address owner = _msgSender();
-        revokeRole(roleBurner, to);
+        _revokeRole(roleBurner, to);
         emit BurnerRemoved(owner, to);
         return true;
     }
