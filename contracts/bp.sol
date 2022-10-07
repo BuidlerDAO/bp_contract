@@ -180,11 +180,10 @@ contract ERC20 is Context, IERC20, IERC20Metadata, AccessControl {
      */
     function approve(address spender, uint256 amount) public virtual override returns (bool) {
         require(false);
-        return false;
 
-        // address owner = _msgSender();
-        // _approve(owner, spender, amount);
-        // return true;
+        address owner = _msgSender();
+        _approve(owner, spender, amount);
+        return true;
     }
 
     /**
@@ -208,13 +207,11 @@ contract ERC20 is Context, IERC20, IERC20Metadata, AccessControl {
         address to,
         uint256 amount
     ) public virtual override returns (bool) {
-        require(false);
-        return false;
-
-        // address spender = _msgSender();
-        // _spendAllowance(from, spender, amount);
-        // _transfer(from, to, amount);
-        // return true;
+        require(hasRole(roleTransfer, msg.sender));
+        address spender = _msgSender();
+        _spendAllowance(from, spender, amount);
+        _transfer(from, to, amount);
+        return true;
     }
 
     /**
@@ -231,10 +228,9 @@ contract ERC20 is Context, IERC20, IERC20Metadata, AccessControl {
      */
     function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool) {
         require(false);
-        return false;
-        // address owner = _msgSender();
-        // _approve(owner, spender, allowance(owner, spender) + addedValue);
-        // return true;
+        address owner = _msgSender();
+        _approve(owner, spender, allowance(owner, spender) + addedValue);
+        return true;
     }
 
     /**
