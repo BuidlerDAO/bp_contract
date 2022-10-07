@@ -44,19 +44,33 @@ contract ERC20 is Context, IERC20, IERC20Metadata, AccessControl {
     string private _symbol;
 
     /**
-     * @dev only Transfer can mint and transfer
+     * @dev only admin can mint, transfer, burn and manage the admins
+     */
+    bytes32 public constant roleManager = keccak256("admin");
+    
+    /**
+     * @dev only minter can mint and transfer
      */
     bytes32 public constant roleMinter = keccak256("minter");
 
     /**
-     * @dev only Transfer can transfer
+     * @dev only transfer can transfer
      */
-    bytes32 public constant roleTransfer = keccak256("transfer");
+    bytes32 public constant roleTransferor = keccak256("transferor");
 
     /**
      * @dev only burner can burn (use for destruction by consensus)
      */
     bytes32 public constant roleBurner = keccak256("burner");
+
+    event ManagerAdded(address indexed operator, address indexed user);
+    event ManegerRemoved(address indexed operator, address indexed user);
+    event AdminAdded(address indexed operator, address indexed user);
+    event AdminRemoved(address indexed operator, address indexed user);
+    event TransferorAddded(address indexed operator, address indexed user);
+    event TransferorRemoved(address indexed operator, address indexed user);
+    event BurnerAddded(address indexed operator, address indexed user);
+    event BurnerRemoved(address indexed operator, address indexed user);
 
     /**
      * @dev Sets the values for {name} and {symbol}.
@@ -70,6 +84,8 @@ contract ERC20 is Context, IERC20, IERC20Metadata, AccessControl {
     constructor(string memory name_, string memory symbol_) {
         _name = name_;
         _symbol = symbol_;
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        addManager(msg.sender);
     }
 
     /**
@@ -125,9 +141,8 @@ contract ERC20 is Context, IERC20, IERC20Metadata, AccessControl {
      *
      * - the caller must have a balance of at least `amount`.
      */
-    function mint(uint256 amount) public virtual returns (bool) {
+    function mint(uint256 amount) public virtual onlyRole(roleMinter) returns (bool) {
         address owner = _msgSender();
-        require(hasRole(roleMinter, owner));
         _mint(owner, amount);
         return true;
     }
@@ -139,9 +154,8 @@ contract ERC20 is Context, IERC20, IERC20Metadata, AccessControl {
      *
      * - the caller must have a balance of at least `amount`.
      */
-    function burn(uint256 amount) public virtual returns (bool) {
+    function burn(uint256 amount) public virtual onlyRole(roleBurner) returns (bool) {
         address owner = _msgSender();
-        require(hasRole(roleBurner, owner));
         _burn(owner, amount);
         return true;
     }
@@ -155,7 +169,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata, AccessControl {
      * - the caller must have a balance of at least `amount`.
      */
     function transfer(address to, uint256 amount) public virtual override returns (bool) {
-        require(hasRole(roleTransfer, msg.sender) || hasRole(roleMinter, msg.sender));
+        require(hasRole(roleTransferor, msg.sender) || hasRole(roleMinter, msg.sender));
         address owner = _msgSender();
         _transfer(owner, to, amount);
         return true;
@@ -206,8 +220,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata, AccessControl {
         address from,
         address to,
         uint256 amount
-    ) public virtual override returns (bool) {
-        require(hasRole(roleTransfer, msg.sender));
+    ) public virtual override onlyRole(roleTransferor) returns (bool) {
         address spender = _msgSender();
         _spendAllowance(from, spender, amount);
         _transfer(from, to, amount);
@@ -226,7 +239,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata, AccessControl {
      *
      * - `spender` cannot be the zero address.
      */
-    function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool) {
+    function increaseAllowance(address spender, uint256 addedValue) public virtual onlyRole(roleTransferor) returns (bool) {
         require(false);
         address owner = _msgSender();
         _approve(owner, spender, allowance(owner, spender) + addedValue);
@@ -247,7 +260,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata, AccessControl {
      * - `spender` must have allowance for the caller of at least
      * `subtractedValue`.
      */
-    function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool) {
+    function decreaseAllowance(address spender, uint256 subtractedValue) public virtual onlyRole(roleTransferor) returns (bool) {
         address owner = _msgSender();
         uint256 currentAllowance = allowance(owner, spender);
         require(currentAllowance >= subtractedValue, "ERC20: decreased allowance below zero");
@@ -301,7 +314,6 @@ contract ERC20 is Context, IERC20, IERC20Metadata, AccessControl {
      * - `account` cannot be the zero address.
      */
     function _mint(address account, uint256 amount) internal virtual {
-        require(hasRole(roleMinter, msg.sender));
         require(account != address(0), "ERC20: mint to the zero address");
         _totalSupply += amount;
         unchecked {
@@ -323,7 +335,6 @@ contract ERC20 is Context, IERC20, IERC20Metadata, AccessControl {
      * - `account` must have at least `amount` tokens.
      */
     function _burn(address account, uint256 amount) internal virtual {
-        require(hasRole(roleBurner, msg.sender));
         require(account != address(0), "ERC20: burn from the zero address");
 
         uint256 accountBalance = _balances[account];
@@ -382,5 +393,85 @@ contract ERC20 is Context, IERC20, IERC20Metadata, AccessControl {
                 _approve(owner, spender, currentAllowance - amount);
             }
         }
+    }
+
+    /**
+     * @dev User Manager Functions
+     *
+     * DEFAULT_ADMIN_ROLE is only the develop when the contract init
+     * And he can set managers
+     */
+    function addManager(address to) public virtual onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
+        address owner = _msgSender();
+        grantRole(roleManager, to);
+        grantRole(roleMinter, to);
+        grantRole(roleTransferor, to);
+        grantRole(roleBurner, to);
+        emit ManagerAdded(owner, to);
+        return true;
+    }
+
+    function removeManager(address to) public virtual onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
+        address owner = _msgSender();
+        revokeRole(roleManager, to);
+        revokeRole(roleMinter, to);
+        revokeRole(roleTransferor, to);
+        revokeRole(roleBurner, to);
+        emit ManegerRemoved(owner, to);
+        return true;
+    }
+
+    /**
+     * @dev User Manager Functions
+     *
+     * roleManager is only the manager set by developer
+     * And he can set roleMinter, roleTransferor, roleBurner
+     */
+    function adminAddAdminRole(address to) public virtual onlyRole(roleManager) returns (bool) {
+        address owner = _msgSender();
+        grantRole(roleMinter, to);
+        grantRole(roleTransferor, to);
+        grantRole(roleBurner, to);
+        emit AdminAdded(owner, to);
+        return true;
+    }
+
+    function adminRemoveAdminRole(address to) public virtual onlyRole(roleManager) returns (bool) {
+        address owner = _msgSender();
+        revokeRole(roleMinter, to);
+        revokeRole(roleTransferor, to);
+        revokeRole(roleBurner, to);
+        emit AdminRemoved(owner, to);
+        return true;
+    }
+
+    function adminAddTransferorRole(address to) public virtual onlyRole(roleManager) returns (bool) {
+        address owner = _msgSender();
+        grantRole(roleTransferor, to);
+        grantRole(roleBurner, to);
+        emit TransferorAddded(owner, to);
+        return true;
+    }
+
+    function adminRemoveTransferorRole(address to) public virtual onlyRole(roleManager) returns (bool) {
+        address owner = _msgSender();
+        revokeRole(roleTransferor, to);
+        revokeRole(roleBurner, to);
+        emit TransferorRemoved(owner, to);
+        return true;
+    }
+
+    function adminAddBurnerRole(address to) public virtual onlyRole(roleManager) returns (bool) {
+        address owner = _msgSender();
+        grantRole(roleBurner, to);
+        emit BurnerAddded(owner, to);
+        return true;
+    }
+
+    function adminRemoveBurnerRole(address to) public virtual onlyRole(roleManager) returns (bool) {
+        address owner = _msgSender();
+        revokeRole(roleBurner, to);
+        emit BurnerRemoved(owner, to);
+        return true;
     }
 }
