@@ -34,7 +34,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
  * functions have been added to mitigate the well-known issues around setting
  * allowances. See {IERC20-approve}.
  */
-contract ERC20 is Context, IERC20, IERC20Metadata, AccessControl {
+contract BuidlerPoint is Context, IERC20, IERC20Metadata, AccessControl {
     mapping(address => uint256) private _balances;
     mapping(address => mapping(address => uint256)) private _allowances;
 
@@ -117,7 +117,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata, AccessControl {
      * {IERC20-balanceOf} and {IERC20-transfer}.
      */
     function decimals() public view virtual override returns (uint8) {
-        return 18;
+        return 0;
     }
 
     /**
