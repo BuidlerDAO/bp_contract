@@ -71,6 +71,8 @@ contract BuidlerPoint is Context, IERC20, IERC20Metadata, AccessControl {
     event TransferorRemoved(address indexed operator, address indexed user);
     event BurnerAddded(address indexed operator, address indexed user);
     event BurnerRemoved(address indexed operator, address indexed user);
+    event FunctionNotFount(address indexed operator, bytes data);
+    event ReturnDonate(address indexed operator, uint value);
 
     /**
      * @dev Sets the values for {name} and {symbol}.
@@ -473,5 +475,19 @@ contract BuidlerPoint is Context, IERC20, IERC20Metadata, AccessControl {
         _revokeRole(roleBurner, to);
         emit BurnerRemoved(owner, to);
         return true;
+    }
+
+    /**
+     * @dev fallback Functions
+     * if user send token to this contract, return it to the user
+     */
+    fallback() external {
+        emit FunctionNotFount(msg.sender, msg.data);
+    }
+
+    receive() external payable{
+        (bool success, ) = msg.sender.call{value: msg.value}("");
+        require(success, "call error");
+        emit ReturnDonate(msg.sender, msg.value);
     }
 }
