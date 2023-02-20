@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 
 /**
@@ -34,7 +35,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
  * functions have been added to mitigate the well-known issues around setting
  * allowances. See {IERC20-approve}.
  */
-contract BuidlerPoint is Context, IERC20, IERC20Metadata, AccessControl {
+contract BuidlerPoint is Initializable, Context, IERC20, IERC20Metadata, AccessControl {
     mapping(address => uint256) private _balances;
     mapping(address => mapping(address => uint256)) private _allowances;
 
@@ -83,7 +84,7 @@ contract BuidlerPoint is Context, IERC20, IERC20Metadata, AccessControl {
      * All two of these values are immutable: they can only be set once during
      * construction.
      */
-    constructor(string memory name_, string memory symbol_) {
+    function initialize(string memory name_, string memory symbol_) public initializer {
         _name = name_;
         _symbol = symbol_;
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
