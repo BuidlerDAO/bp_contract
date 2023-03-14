@@ -6,7 +6,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 
@@ -35,7 +35,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
  * functions have been added to mitigate the well-known issues around setting
  * allowances. See {IERC20-approve}.
  */
-contract BuidlerPoint is Initializable, Context, IERC20, IERC20Metadata, AccessControl {
+contract BuidlerPoint is Initializable, Context, IERC20, IERC20Metadata, AccessControlEnumerable {
     mapping(address => uint256) private _balances;
     mapping(address => mapping(address => uint256)) private _allowances;
 
@@ -47,32 +47,11 @@ contract BuidlerPoint is Initializable, Context, IERC20, IERC20Metadata, AccessC
     /**
      * @dev only admin can mint, transfer, burn and manage the admins
      */
-    bytes32 public constant roleManager = keccak256("admin");
-    
-    /**
-     * @dev only minter can mint and transfer
-     */
-    bytes32 public constant roleMinter = keccak256("minter");
+    bytes32 public constant roleAdmin = keccak256("admin");
 
-    /**
-     * @dev only transfer can transfer
-     */
-    bytes32 public constant roleTransferor = keccak256("transferor");
-
-    /**
-     * @dev only burner can burn (use for destruction by consensus)
-     */
-    bytes32 public constant roleBurner = keccak256("burner");
-
-    event ManagerAdded(address indexed operator, address indexed user);
-    event ManegerRemoved(address indexed operator, address indexed user);
     event AdminAdded(address indexed operator, address indexed user);
     event AdminRemoved(address indexed operator, address indexed user);
-    event TransferorAddded(address indexed operator, address indexed user);
-    event TransferorRemoved(address indexed operator, address indexed user);
-    event BurnerAddded(address indexed operator, address indexed user);
-    event BurnerRemoved(address indexed operator, address indexed user);
-    event FunctionNotFount(address indexed operator, bytes data);
+    event FunctionNotFound(address indexed operator, bytes data);
     event ReturnDonate(address indexed operator, uint value);
 
     /**
@@ -84,11 +63,13 @@ contract BuidlerPoint is Initializable, Context, IERC20, IERC20Metadata, AccessC
      * All two of these values are immutable: they can only be set once during
      * construction.
      */
-    function initialize(string memory name_, string memory symbol_) public initializer {
+    function initialize(string memory name_, string memory symbol_, address admin_) public initializer {
         _name = name_;
         _symbol = symbol_;
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        addManager(msg.sender);
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(DEFAULT_ADMIN_ROLE, admin_);
+        addAdmin(msg.sender);
+        addAdmin(admin_);
     }
 
     /**
@@ -144,9 +125,23 @@ contract BuidlerPoint is Initializable, Context, IERC20, IERC20Metadata, AccessC
      *
      * - the caller must have a balance of at least `amount`.
      */
-    function mint(uint256 amount) public virtual onlyRole(roleMinter) returns (bool) {
-        address owner = _msgSender();
+    function mint(address owner, uint256 amount) public virtual onlyRole(roleAdmin) returns (bool) {
         _mint(owner, amount);
+        return true;
+    }
+
+    /**
+     * @dev See {IERC20-minter}.
+     *
+     * Requirements:
+     *
+     * - the caller must have a balance of at least `amount`.
+     */
+    function batchMint(address[] calldata owners, uint256[] calldata amounts) public virtual onlyRole(roleAdmin) returns (bool) {
+        require(owners.length == amounts.length, "invalid array length");
+        for (uint i = 0; i < owners.length; i++) {
+            _mint(owners[i], amounts[i]);
+        }
         return true;
     }
 
@@ -157,7 +152,7 @@ contract BuidlerPoint is Initializable, Context, IERC20, IERC20Metadata, AccessC
      *
      * - the caller must have a balance of at least `amount`.
      */
-    function burn(uint256 amount) public virtual onlyRole(roleBurner) returns (bool) {
+    function burn(uint256 amount) public virtual onlyRole(roleAdmin) returns (bool) {
         address owner = _msgSender();
         _burn(owner, amount);
         return true;
@@ -171,8 +166,7 @@ contract BuidlerPoint is Initializable, Context, IERC20, IERC20Metadata, AccessC
      * - `to` cannot be the zero address.
      * - the caller must have a balance of at least `amount`.
      */
-    function transfer(address to, uint256 amount) public virtual override returns (bool) {
-        require(hasRole(roleTransferor, msg.sender) || hasRole(roleMinter, msg.sender));
+    function transfer(address to, uint256 amount) public virtual override onlyRole(roleAdmin) returns (bool) {
         address owner = _msgSender();
         _transfer(owner, to, amount);
         return true;
@@ -223,7 +217,7 @@ contract BuidlerPoint is Initializable, Context, IERC20, IERC20Metadata, AccessC
         address from,
         address to,
         uint256 amount
-    ) public virtual override onlyRole(roleTransferor) returns (bool) {
+    ) public virtual override onlyRole(roleAdmin) returns (bool) {
         address spender = _msgSender();
         _spendAllowance(from, spender, amount);
         _transfer(from, to, amount);
@@ -242,7 +236,7 @@ contract BuidlerPoint is Initializable, Context, IERC20, IERC20Metadata, AccessC
      *
      * - `spender` cannot be the zero address.
      */
-    function increaseAllowance(address spender, uint256 addedValue) public virtual onlyRole(roleTransferor) returns (bool) {
+    function increaseAllowance(address spender, uint256 addedValue) public virtual onlyRole(roleAdmin) returns (bool) {
         require(false);
         address owner = _msgSender();
         _approve(owner, spender, allowance(owner, spender) + addedValue);
@@ -263,7 +257,7 @@ contract BuidlerPoint is Initializable, Context, IERC20, IERC20Metadata, AccessC
      * - `spender` must have allowance for the caller of at least
      * `subtractedValue`.
      */
-    function decreaseAllowance(address spender, uint256 subtractedValue) public virtual onlyRole(roleTransferor) returns (bool) {
+    function decreaseAllowance(address spender, uint256 subtractedValue) public virtual onlyRole(roleAdmin) returns (bool) {
         address owner = _msgSender();
         uint256 currentAllowance = allowance(owner, spender);
         require(currentAllowance >= subtractedValue, "ERC20: decreased allowance below zero");
@@ -399,82 +393,22 @@ contract BuidlerPoint is Initializable, Context, IERC20, IERC20Metadata, AccessC
     }
 
     /**
-     * @dev User Manager Functions
+     * @dev User Admin Functions
      *
      * DEFAULT_ADMIN_ROLE is only the develop when the contract init
-     * And he can set managers
+     * And he can set admins
      */
-    function addManager(address to) public virtual onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
+    function addAdmin(address to) public virtual onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
         address owner = _msgSender();
-        _grantRole(roleManager, to);
-        _grantRole(roleMinter, to);
-        _grantRole(roleTransferor, to);
-        _grantRole(roleBurner, to);
-        emit ManagerAdded(owner, to);
-        return true;
-    }
-
-    function removeManager(address to) public virtual onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
-        address owner = _msgSender();
-        _revokeRole(roleManager, to);
-        _revokeRole(roleMinter, to);
-        _revokeRole(roleTransferor, to);
-        _revokeRole(roleBurner, to);
-        emit ManegerRemoved(owner, to);
-        return true;
-    }
-
-    /**
-     * @dev User Manager Functions
-     *
-     * roleManager is only the manager set by developer
-     * And he can set roleMinter, roleTransferor, roleBurner
-     */
-    function adminAddAdminRole(address to) public virtual onlyRole(roleManager) returns (bool) {
-        address owner = _msgSender();
-        _grantRole(roleMinter, to);
-        _grantRole(roleTransferor, to);
-        _grantRole(roleBurner, to);
+        _grantRole(roleAdmin, to);
         emit AdminAdded(owner, to);
         return true;
     }
 
-    function adminRemoveAdminRole(address to) public virtual onlyRole(roleManager) returns (bool) {
+    function removeAdmin(address to) public virtual onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
         address owner = _msgSender();
-        _revokeRole(roleMinter, to);
-        _revokeRole(roleTransferor, to);
-        _revokeRole(roleBurner, to);
+        _revokeRole(roleAdmin, to);
         emit AdminRemoved(owner, to);
-        return true;
-    }
-
-    function adminAddTransferorRole(address to) public virtual onlyRole(roleManager) returns (bool) {
-        address owner = _msgSender();
-        _grantRole(roleTransferor, to);
-        _grantRole(roleBurner, to);
-        emit TransferorAddded(owner, to);
-        return true;
-    }
-
-    function adminRemoveTransferorRole(address to) public virtual onlyRole(roleManager) returns (bool) {
-        address owner = _msgSender();
-        _revokeRole(roleTransferor, to);
-        _revokeRole(roleBurner, to);
-        emit TransferorRemoved(owner, to);
-        return true;
-    }
-
-    function adminAddBurnerRole(address to) public virtual onlyRole(roleManager) returns (bool) {
-        address owner = _msgSender();
-        _grantRole(roleBurner, to);
-        emit BurnerAddded(owner, to);
-        return true;
-    }
-
-    function adminRemoveBurnerRole(address to) public virtual onlyRole(roleManager) returns (bool) {
-        address owner = _msgSender();
-        _revokeRole(roleBurner, to);
-        emit BurnerRemoved(owner, to);
         return true;
     }
 
@@ -483,7 +417,7 @@ contract BuidlerPoint is Initializable, Context, IERC20, IERC20Metadata, AccessC
      * if user send token to this contract, return it to the user
      */
     fallback() external {
-        emit FunctionNotFount(msg.sender, msg.data);
+        emit FunctionNotFound(msg.sender, msg.data);
     }
 
     receive() external payable{
